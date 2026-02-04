@@ -31,8 +31,9 @@ loadSprite("char2", "sprites/burpman-o.png");
 loadSprite("char3", "sprites/bobo-o.png");
 loadSprite("char4", "sprites/flowy-o.png");
 loadSprite("char5", "sprites/discord-o.png");
-
-// Lista personaggi + nome sotto
+//background
+loadSprite("bg", "backgrounds/tappeto.jpg");
+//  personaggi + nome sotto
 const characters = [
   { id: "char1", name: "Fransauro" },
   { id: "char2", name: "Muscolandro" },
@@ -41,8 +42,10 @@ const characters = [
   { id: "char5", name: "Paolord" },
 ];
 
+
 let selectedChar = "char1";
 let score = 0;
+
 
 // --------------------
 // SCENE: SELECT
@@ -160,6 +163,28 @@ scene("game", (data) => {
     area(),
     body(),
   ]);
+
+  //background
+  function addBackground() {
+     const bg = add([
+        sprite("bg"),
+        pos(0, 0),
+        fixed(),
+        z(-10),
+    ]);
+
+    const s = Math.max(
+        width() / bg.width,
+        height() / bg.height
+    );
+
+    bg.scale = vec2(s);
+    return bg;
+    }
+
+    const bg = addBackground();
+
+
 
   // piattaforma
   add([
