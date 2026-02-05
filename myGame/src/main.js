@@ -82,11 +82,11 @@ onKeyPress(() => unlockAudioIfNeeded());
 // --------------------
 loadRoot("./");
 
-loadSprite("char1", "sprites/bag-o.png");
-loadSprite("char2", "sprites/burpman-o.png");
-loadSprite("char3", "sprites/bobo-o.png");
-loadSprite("char4", "sprites/flowy-o.png");
-loadSprite("char5", "sprites/discord-o.png");
+loadSprite("char1", "sprites/franosauro-removebg-preview(1).png");
+loadSprite("char2", "sprites/muscolandro-removebg-preview(1).png");
+loadSprite("char3", "sprites/frullavide-removebg-preview(1).png");
+loadSprite("char4", "sprites/piangiorgio-removebg-preview(1).png");
+loadSprite("char5", "sprites/paolord-removebg-preview(1).png");
 
 // background
 loadSprite("bg", "backgrounds/tappeto.jpg");
@@ -203,16 +203,11 @@ scene("select", () => {
     }
   });
 
-<<<<<<< HEAD
-  // avvio con SPACE
-  onKeyPress("space", () => go("game", { selectedChar }));
-=======
   // Avvio con SPACE
   onKeyPress("space", () => {
     unlockAudioIfNeeded();
     go("game", { selectedChar });
   });
->>>>>>> cff7386 (musica e antodattilo)
 
   // tasto F per fullscreen 
   onKeyPress("f", () => {
