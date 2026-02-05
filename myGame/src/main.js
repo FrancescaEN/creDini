@@ -21,6 +21,63 @@ window.addEventListener("resize", () => {
 });
 
 // --------------------
+// AUDIO (BGM) - Gestione centralizzata
+// --------------------
+let bgmHandle = null;
+let audioUnlocked = false;
+
+/**
+ * Sblocca l'audio (necessario su molti browser: serve un input utente).
+ * La prima interazione (click o keypress) abilita e fa partire la musica.
+ */
+function unlockAudioIfNeeded() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  playBGM();
+}
+
+/**
+ * Avvia la musica in loop (se non è già partita)
+ */
+function playBGM() {
+  if (!audioUnlocked) return; // finché non c'è interazione utente, non partire
+  if (bgmHandle) return; // evita doppioni
+
+  bgmHandle = play("bgm", {
+    loop: true,
+    volume: 0.35,
+  });
+}
+
+/**
+ * Ferma la musica (utile se vuoi stopparla in alcune scene)
+ */
+function stopBGM() {
+  if (!bgmHandle) return;
+  bgmHandle.stop();
+  bgmHandle = null;
+}
+
+/**
+ * Cambia volume al volo (0..1)
+ */
+function setBGMVolume(v) {
+  // in base alla versione, l'handle potrebbe avere .volume
+  // se non esiste, puoi stoppare e ripartire con volume diverso.
+  if (bgmHandle && typeof bgmHandle.volume !== "undefined") {
+    bgmHandle.volume = v;
+  } else if (bgmHandle) {
+    // fallback: riavvia con volume nuovo
+    stopBGM();
+    bgmHandle = play("bgm", { loop: true, volume: v });
+  }
+}
+
+// Sblocco audio con la prima interazione
+onMousePress(() => unlockAudioIfNeeded());
+onKeyPress(() => unlockAudioIfNeeded());
+
+// --------------------
 // ASSET
 // --------------------
 loadRoot("./");
@@ -30,9 +87,17 @@ loadSprite("char2", "sprites/burpman-o.png");
 loadSprite("char3", "sprites/bobo-o.png");
 loadSprite("char4", "sprites/flowy-o.png");
 loadSprite("char5", "sprites/discord-o.png");
-//background
+
+// background
 loadSprite("bg", "backgrounds/tappeto.jpg");
-//  personaggi + nome sotto
+
+// ✅ antodactilo che deve piovere
+loadSprite("antodactilo", "sprites/antodactilo.png");
+
+// musica
+loadSound("bgm", "audio/BeepBox-Song5.mp3");
+
+// personaggi + nome sotto
 const characters = [
   { id: "char1", name: "Fransauro" },
   { id: "char2", name: "Muscolandro" },
@@ -41,10 +106,8 @@ const characters = [
   { id: "char5", name: "Paolord" },
 ];
 
-
 let selectedChar = "char1";
 let score = 0;
-
 
 // --------------------
 // SCENE: SELECT
@@ -125,6 +188,9 @@ scene("select", () => {
     });
 
     card.onClick(() => {
+      // se l'audio non è ancora sbloccato, lo sblocchiamo qui
+      unlockAudioIfNeeded();
+
       if (selectedChar === c.id) {
         go("game", { selectedChar });
       } else {
@@ -137,13 +203,25 @@ scene("select", () => {
     }
   });
 
+<<<<<<< HEAD
   // avvio con SPACE
   onKeyPress("space", () => go("game", { selectedChar }));
+=======
+  // Avvio con SPACE
+  onKeyPress("space", () => {
+    unlockAudioIfNeeded();
+    go("game", { selectedChar });
+  });
+>>>>>>> cff7386 (musica e antodattilo)
 
   // tasto F per fullscreen 
   onKeyPress("f", () => {
     if (typeof fullscreen === "function") fullscreen();
   });
+
+  // (opzionale) controllo volume con tasti - e =
+  onKeyPress("-", () => setBGMVolume(0.15));
+  onKeyPress("=", () => setBGMVolume(0.35));
 });
 
 // --------------------
@@ -151,6 +229,9 @@ scene("select", () => {
 // --------------------
 scene("game", (data) => {
   score = 0;
+
+  // avvia la musica anche se la vuoi solo in game
+  playBGM();
 
   // gravità
   setGravity(1600);
@@ -163,27 +244,60 @@ scene("game", (data) => {
     body(),
   ]);
 
-  //background
+  // background
   function addBackground() {
-     const bg = add([
-        sprite("bg"),
-        pos(0, 0),
-        fixed(),
-        z(-10),
+    const bg = add([
+      sprite("bg"),
+      pos(0, 0),
+      fixed(),
+      z(-20), // più indietro della pioggia
     ]);
 
-    const s = Math.max(
-        width() / bg.width,
-        height() / bg.height
-    );
-
+    const s = Math.max(width() / bg.width, height() / bg.height);
     bg.scale = vec2(s);
     return bg;
+  }
+
+  addBackground();
+
+  // --------------------
+  // 🌧️ PIOGGIA DI ANTODACTILI (BACKGROUND)
+  // --------------------
+  function spawnAntodactiloRain() {
+    const scaleVal = rand(0.25, 0.50);     // dimensione casuale
+    const speedVal = rand(120, 320);       // velocità di caduta
+    const x = rand(0, width());
+    const y = rand(-120, -40);
+
+    const drop = add([
+      sprite("antodactilo"),
+      pos(x, y),
+      scale(scaleVal),
+      opacity(rand(0.35, 0.75)),
+      fixed(),           // resta in "camera space"
+      z(-15),            // dietro a player/ostacoli ma sopra bg
+      move(DOWN, speedVal),
+      "antodactiloRain",
+    ]);
+
+    // Piccola rotazione random per renderlo più "vivo"
+    // (se la tua versione supporta rotate())
+    if (typeof rotate === "function") {
+      drop.use(rotate(rand(-20, 20)));
     }
 
-    const bg = addBackground();
+    drop.onUpdate(() => {
+      if (drop.pos.y > height() + 100) {
+        destroy(drop);
+      }
+    });
 
+    // frequenza spawn (più basso = più pioggia)
+    wait(rand(0.15, 0.30), spawnAntodactiloRain);
+  }
 
+  // avvia la pioggia
+  spawnAntodactiloRain();
 
   // piattaforma
   add([
@@ -238,6 +352,9 @@ scene("game", (data) => {
 // SCENE: LOSE
 // --------------------
 scene("lose", (data) => {
+  // Se vuoi fermare la musica al game over, sblocca questa riga:
+  // stopBGM();
+
   add([
     text("Game Over", { size: Math.max(40, Math.floor(width() / 16)) }),
     pos(center()),
@@ -261,7 +378,10 @@ scene("lose", (data) => {
   ]);
 
   onKeyPress("space", () => go("game", { selectedChar: data.selectedChar }));
-  onMousePress(() => go("game", { selectedChar: data.selectedChar }));
+  onMousePress(() => {
+    unlockAudioIfNeeded();
+    go("game", { selectedChar: data.selectedChar });
+  });
   onKeyPress("enter", () => go("select"));
 });
 
