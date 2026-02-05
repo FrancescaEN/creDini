@@ -9,16 +9,15 @@ const k = kaplay({
   background: [0, 0, 0],
 });
 
-// Resize: aggiorna la dimensione del canvas quando cambi finestra
+// resize -> aggiorna la dimensione del canvas quando cambi finestra
 window.addEventListener("resize", () => {
-  // in Kaplay/Kaboom questa funzione esiste normalmente
+  
   if (typeof setCanvasSize === "function") {
     setCanvasSize(window.innerWidth, window.innerHeight);
   } else if (k && typeof k.setCanvasSize === "function") {
     k.setCanvasSize(window.innerWidth, window.innerHeight);
   }
-  // Nota: gli elementi già disegnati non si riposizionano automaticamente.
-  // Se vuoi, posso aggiungerti una gestione "responsive" che ridisegna la scene.
+  
 });
 
 // --------------------
@@ -70,7 +69,7 @@ scene("select", () => {
     opacity(0.8),
   ]);
 
-  // Riga personaggi in basso
+  // riga personaggi in basso
   const yRow = H - Math.max(150, Math.floor(H * 0.22));
   const spacing = Math.min(180, Math.floor(W / 6));
   const startX = W / 2 - ((characters.length - 1) * spacing) / 2;
@@ -138,10 +137,10 @@ scene("select", () => {
     }
   });
 
-  // Avvio con SPACE
+  // avvio con SPACE
   onKeyPress("space", () => go("game", { selectedChar }));
 
-  // (opzionale) tasto F per fullscreen "vero"
+  // tasto F per fullscreen 
   onKeyPress("f", () => {
     if (typeof fullscreen === "function") fullscreen();
   });
@@ -266,5 +265,5 @@ scene("lose", (data) => {
   onKeyPress("enter", () => go("select"));
 });
 
-// Avvio: vai alla selezione
+// avvio
 go("select");
